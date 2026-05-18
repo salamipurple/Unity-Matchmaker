@@ -35,9 +35,8 @@ app.get('/api/games', (req, res) => {
     res.json({ games: activeGames });
 });
 
-// Root endpoint for Render health checks
 app.get('/', (req, res) => {
-    res.send('Unity Matchmaker Backend Active');
+    res.sendFile(__dirname + '/index.html');
 });
 
 const PORT = process.env.PORT || 3000;
