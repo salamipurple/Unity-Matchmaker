@@ -19,7 +19,7 @@ app.post('/api/games', (req, res) => {
     activeGames.push({ code, createdAt: Date.now() });
 
     // Cap the array to prevent memory leaks on the free tier
-    if (activeGames.length > 100) {
+    if (activeGames.length > 1 /* limits the number of games */) {
         activeGames.shift();
     }
 
