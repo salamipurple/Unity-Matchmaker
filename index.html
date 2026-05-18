@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Matchmaker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 0 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #e94560; }
+        input, button {
+            padding: 10px 16px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+        }
+        input {
+            background: #16213e;
+            color: #eee;
+            border: 1px solid #444;
+            width: 200px;
+        }
+        button {
+            background: #e94560;
+            color: #fff;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        button:hover { background: #c73652; }
+        #games-list { margin-top: 30px; }
+        .game-entry {
+            background: #16213e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .game-code { font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+        .game-age { font-size: 12px; color: #888; }
+        #status { margin-top: 12px; color: #aaa; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>Unity Matchmaker</h1>
+
+    <div>
+        <input id="code-input" type="text" placeholder="Enter game code" maxlength="20">
+        <button onclick="postCode()">Host Game</button>
+        <button onclick="loadGames()">Refresh</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="games-list"></div>
+
+    <script>
+        const API = '/api/games';
+
+        async function loadGames() {
+            const res = await fetch(API);
+            const data = await res.json();
+            const list = document.getElementById('games-list');
+            if (!data.games.length) {
+                list.innerHTML = '<p style="color:#888">No active games found.</p>';
+                return;
+            }
+            list.innerHTML = data.games.map(g => `
+                <div class="game-entry">
+                    <span class="game-code">${g.code}</span>
+                    <span class="game-age">${timeAgo(g.createdAt)}</span>
+                </div>
+            `).join('');
+        }
+
+        async function postCode() {
+            const input = document.getElementById('code-input');
+            const code = input.value.trim();
+            if (!code) return;
+            const status = document.getElementById('status');
+            const res = await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            if (res.ok) {
+                status.textContent = `Game "${code}" is now listed.`;
+                input.value = '';
+                loadGames();
+            } else {
+                status.textContent = 'Failed to post game code.';
+            }
+        }
+
+        function timeAgo(ts) {
+            const mins = Math.floor((Date.now() - ts) / 60000);
+            if (mins < 1) return 'just now';
+            if (mins === 1) return '1 min ago';
+            return `${mins} mins ago`;
+        }
+
+        loadGames();
+    </script>
+</body>
+</html>
